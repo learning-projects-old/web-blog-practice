@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Локальные ключи и рабочая БД с паролями и сессиями.
+.env
+.env.*
+!.env.example
+src/db.json

@@ -1,21 +1,34 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
+/** Отображает подвал блога; погодные данные запрашивает только при настроенном серверном адресе. */
 const FooterContainer = ({ className }) => {
 	const [city, setCity] = useState('');
 	const [temperature, setTemperature] = useState('');
 	const [weather, setWeather] = useState('');
 
 	useEffect(() => {
-		fetch(
-			'https://api.openweathermap.org/data/2.5/weather?q=Karaganda&lang=ru&appid=5da6ce51f0238721dd74d4472a9d2b9d',
-		)
-			.then((response) => response.json())
-			.then(({ name, main, weather }) => {
-				setCity(name);
-				setTemperature(Math.round(main.temp / 10)); // Сервер почему то неправильно показывает мой город (умножает на 10)
-				setWeather(weather[0].description);
-			});
+		const endpoint = import.meta.env.VITE_WEATHER_ENDPOINT;
+		if (!endpoint) return;
+
+		const controller = new AbortController();
+		/** Загружает погоду для FooterContainer через серверный адрес без ключа в браузере. */
+		async function loadWeather() {
+			try {
+				const response = await fetch(endpoint, { signal: controller.signal });
+				if (!response.ok) return;
+				const data = await response.json();
+				if (typeof data.name !== 'string' || !Number.isFinite(data.main?.temp)
+					|| typeof data.weather?.[0]?.description !== 'string') return;
+				setCity(data.name);
+				setTemperature(Math.round(data.main.temp - 273.15));
+				setWeather(data.weather[0].description);
+			} catch {
+				// Недоступность погоды не должна прерывать работу блога.
+			}
+		}
+		void loadWeather();
+		return () => controller.abort();
 	}, []);
 	return (
 		<footer className={className}>

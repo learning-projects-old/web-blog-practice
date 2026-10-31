@@ -1,0 +1,14 @@
+[extend]
+useDefault = true
+
+[[rules]]
+id = "openweathermap-query-token"
+description = "OpenWeatherMap token embedded in a request URL"
+regex = '''(?i)openweathermap[^\s"']*[?&]appid=([a-f0-9]{32})'''
+secretGroup = 1
+
+[[rules]]
+id = "json-password-value"
+description = "Nonempty password stored in JSON"
+regex = '''(?i)"password"\s*:\s*"([^"\r\n]+)"'''
+secretGroup = 1
